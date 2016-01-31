@@ -2,6 +2,7 @@ package org.mp.main
 
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.{SparkContext, SparkConf}
+import org.mp.actor.QueryExecutor
 import org.mp.jena.sparksql.JenaContext
 import org.mp.sparql2sparksql.Parser
 
@@ -10,7 +11,7 @@ import org.mp.sparql2sparksql.Parser
   */
 object ParseMain extends Serializable {
 
-  val conf = new SparkConf().setAppName("Jena-SparkSql-Driver").setMaster("local")
+  val conf = new SparkConf().setAppName("SPARQL-Parser").setMaster("local")
   val sc = new SparkContext(conf)
   val sqlContext = new SQLContext(sc)
 
@@ -29,7 +30,13 @@ object ParseMain extends Serializable {
         ?Z ub:subOrganizationOf ?Y .
         ?X ub:undergraduateDegreeFrom ?Y }
       """
+
     val parser = Parser(queryStr)
-    println(parser.queries)
+    val queries = parser.queries
+    val qexec = new QueryExecutor(service, queries)(sqlContext)
+    qexec.start()
+
+    while(!qexec.stop) {}
+    val dataFrame = qexec.dataFrameMap
   }
 }
