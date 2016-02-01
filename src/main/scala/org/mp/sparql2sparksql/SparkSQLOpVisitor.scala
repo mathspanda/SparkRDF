@@ -3,6 +3,7 @@ package org.mp.sparql2sparksql
 import org.apache.jena.graph.Triple
 import org.apache.jena.sparql.algebra.OpVisitor
 import org.apache.jena.sparql.algebra.op._
+import org.mp.base.SparqlQuery
 
 import scala.collection.JavaConversions._
 
@@ -15,7 +16,7 @@ class SparkSQLOpVisitor(tableName: String) extends OpVisitor {
   var fromClause: String = s"from $tableName "
 
   var bgpStarted: Boolean = false
-  var tripleList: List[Triple] = _
+  var queries: List[SparqlQuery] = null
 
   override def visit(opTable: OpTable) {}
 
@@ -62,7 +63,7 @@ class SparkSQLOpVisitor(tableName: String) extends OpVisitor {
 
   override def visit(opBGP: OpBGP) {
     bgpStarted = true
-    tripleList = opBGP.getPattern.getList.toList
+    queries = opBGP.getPattern.getList.toList.map(SparqlQuery(_))
   }
 
   override def visit(dsNames: OpDatasetNames) {}
@@ -95,7 +96,7 @@ class SparkSQLOpVisitor(tableName: String) extends OpVisitor {
 
   override def visit(opOrder: OpOrder) {}
 
-  def generateSQL = s"$selectClause $fromClause"
+  def generateSQL(): String = s"$selectClause $fromClause"
 }
 
 object SparkSQLOpVisitor {

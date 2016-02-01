@@ -37,6 +37,9 @@ object ParseMain extends Serializable {
     qexec.start()
 
     while(!qexec.stop) {}
-    val dataFrame = qexec.dataFrameMap
+    queries.map(println)
+
+    val resultFrame = qexec.compute()
+    resultFrame.show
   }
 }
